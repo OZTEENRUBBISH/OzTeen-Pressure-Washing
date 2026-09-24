@@ -1,12 +1,11 @@
 document.getElementById('yr').textContent = new Date().getFullYear();
 
 // ---------------------------------------------------------------
-// FORM ENDPOINT: paste your Formspree URL here once you have one,
-// e.g. 'https://formspree.io/f/xxxxxxxx' (like the Rubbish Removals
-// site uses). Until you do, the form will just show the "thanks"
-// confirmation locally without actually sending anywhere.
+// FORM ENDPOINT: Web3Forms. Submissions are emailed to whatever
+// address is tied to this access key on web3forms.com.
 // ---------------------------------------------------------------
-const FORM_ENDPOINT = 'https://formspree.io/f/xnpnnyog';
+const WEB3FORMS_ACCESS_KEY = '461f0ba0-441f-448d-a5b8-a2887b7c7203';
+const FORM_ENDPOINT = 'https://api.web3forms.com/submit';
 
 const form = document.getElementById('quoteForm');
 const cardSection = document.getElementById('quote');
@@ -32,15 +31,9 @@ form.addEventListener('submit', function(e){
   const card = form.closest('.card');
   const submitBtn = form.querySelector('.submit');
 
-  // If no real endpoint has been set yet, just show the confirmation
-  // locally so you can still test the form end-to-end.
-  if (!FORM_ENDPOINT || FORM_ENDPOINT.indexOf('YOUR_FORM_ID') !== -1) {
-    card.classList.add('sent');
-    cardSection.scrollIntoView({behavior:'smooth', block:'center'});
-    return;
-  }
-
   const data = new FormData(form);
+  data.append('access_key', WEB3FORMS_ACCESS_KEY);
+
   submitBtn.disabled = true;
   submitBtn.textContent = 'Sending…';
 
@@ -49,8 +42,10 @@ form.addEventListener('submit', function(e){
     body: data,
     headers: { 'Accept': 'application/json' }
   })
-    .then(function(response){
-      if (response.ok) {
+    .then(function(response){ return response.json().then(function(result){ return { response, result }; }); })
+    .then(function(_ref){
+      const response = _ref.response, result = _ref.result;
+      if (response.ok && result.success) {
         card.classList.add('sent');
         cardSection.scrollIntoView({behavior:'smooth', block:'center'});
       } else {
